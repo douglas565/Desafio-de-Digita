@@ -12,7 +12,7 @@
 #include "tecla.h"
 #include "tela.h"
 
-#define TEMPO 20
+#define TEMPO 100
 #define TOTAL_DE_PALAVRAS 10
 
 void reorganiza_matriz(char palavras[10][16], int index_acertado);
