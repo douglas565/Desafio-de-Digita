@@ -301,3 +301,5 @@ void reorganiza_matriz(char palavras[10][16], int index_acertado)
     palavras[9][j] = '\0';
   }
 }
+
+//teste
