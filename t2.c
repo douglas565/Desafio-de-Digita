@@ -15,13 +15,14 @@
 #define TEMPO 100
 #define TOTAL_DE_PALAVRAS 10
 
-void reorganiza_matriz(char palavras[10][16], int index_acertado);
+
 void remove_letra(char v[], int pos);
 void apresentacao();
 void encerramento();
 void jogo();
 bool quer_jogar_de_novo();
 void preenche_vet(char v[], int min_len, int max_len);
+void reorganiza_matriz(char palavras[10][16], int index_acertado);
 void mostra_vet(char v[]);
 void espera_enter();
 void popular_matriz(char palavras[10][16]);
@@ -99,18 +100,61 @@ void Sorteia_palavra(char v[], int min_len, int max_len)
   v[len] = '\0'; // Termina a string com o caractere nulo
 }
 
+char banco_de_palavras[920][16];
+int tela_largura()
+{
+  // Implementation of the tela_largura() function
+
+  return 80; // Example value
+}
+
 void popular_matriz(char palavras[10][16])
 {
-  char banco_de_palavras[920][16];
-  int num_palavras = ler_banco_de_palavras(banco_de_palavras, "palavras.txt");
+  int num_palavras = ler_banco_de_palavras(palavras, "palavras.txt");
 
   for (int i = 0; i < 10; i++)
   {
     int indice_aleatorio = rand() % num_palavras;
     strcpy(palavras[i], banco_de_palavras[indice_aleatorio]);
-    printf("Palavra %d: %s\n", i + 1, palavras[i]); // Imprime cada palavra
+
+    // Gera os atributos aleatórios
+    int pos_hor = rand() % 100;
+    int hora_ativacao = rand() % 20;
+    int tempo_digitacao = rand() % 30 + 5;
+
+    // Calcula a posição da palavra na tela
+    int largura = tela_largura(); // Chamada da função tela_largura()
+    int tamanho = strlen(palavras[i]);
+    int coluna = (largura - tamanho) * pos_hor / 100;
+
+    // Atualiza a palavra com os atributos gerados
+    palavras[i][0] = palavras[i][0] | (1 << 7); // Seta o bit 7 para indicar que a palavra está ativa
+    palavras[i][1] = hora_ativacao;
+    palavras[i][2] = tempo_digitacao;
+    palavras[i][3] = coluna;
   }
 }
+
+
+void reorganiza_matriz(char palavras[10][16], int index_acertado)
+{
+  for (int i = index_acertado; i < 9; i++)
+  {
+    int j;
+    for (j = 0; palavras[i + 1][j] != '\0'; j++)
+    {
+      palavras[i][j] = palavras[i + 1][j];
+    }
+    palavras[i][j] = '\0'; // Termina a string atual após a cópia.
+  }
+  // Limpa a última posição da matriz após mover todas as palavras.
+  for (int j = 0; palavras[9][j] != '\0'; j++)
+  {
+    palavras[9][j] = '\0';
+  }
+}
+
+
 
 void mostra_matriz(char palavras[10][16])
 {
@@ -119,10 +163,31 @@ void mostra_matriz(char palavras[10][16])
 
   tela_cor_letra(0, 255, 0);
 
-  printf("Palavras:\n");
+  // Mostra as palavras ativas
   for (int i = 0; i < 10; i++)
   {
-    printf("%s\n", palavras[i]);
+    if (palavras[i][0] & (1 << 7))
+    {
+      printf("%s\n", palavras[i]);
+    }
+  }
+
+
+
+int palavra_selecionada = 0;
+
+int quantidade_de_palavras = ler_banco_de_palavras(palavras, "palavras.txt");
+if (quantidade_de_palavras < 10)
+{
+  return;
+}
+
+  // Destaca a palavra selecionada
+  if (palavra_selecionada >= 0)
+  {
+    tela_cor_letra(255, 0, 0);
+    printf("%s\n", palavras[palavra_selecionada]);
+    tela_cor_letra(0, 255, 0);
   }
 
   tela_atualiza();
@@ -168,6 +233,7 @@ void jogo()
     {
       printf("Digite uma letra para selecionar uma palavra: ");
     }
+
     else
     {
 
@@ -281,23 +347,5 @@ void remove_letra(char v[], int pos)
       v[i] = v[i + 1];
     }
     v[len - 1] = '\0'; // Define o último caractere como nulo
-  }
-}
-
-void reorganiza_matriz(char palavras[10][16], int index_acertado)
-{
-  for (int i = index_acertado; i < 9; i++)
-  {
-    int j;
-    for (j = 0; palavras[i + 1][j] != '\0'; j++)
-    {
-      palavras[i][j] = palavras[i + 1][j];
-    }
-    palavras[i][j] = '\0'; // Termina a string atual após a cópia.
-  }
-  // Limpa a última posição da matriz após mover todas as palavras.
-  for (int j = 0; palavras[9][j] != '\0'; j++)
-  {
-    palavras[9][j] = '\0';
   }
 }
