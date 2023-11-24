@@ -20,6 +20,7 @@ typedef struct
   int pos_horizontal;
   int pos_vertical;
   char palavra[16];
+  int tempo_palavra;
   bool ativacao;
 } Palavra;
 
