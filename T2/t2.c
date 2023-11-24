@@ -36,11 +36,11 @@ int main()
   //  for que vai gera uma letra aleatoria
   do
   {
-    tela_ini();
+    tecla_ini();
     tecla_ini();
     jogo();
     tecla_fim();
-    tela_fim();
+    tecla_fim();
 
   } while (quer_jogar_de_novo());
 
@@ -53,6 +53,7 @@ int ler_banco_de_palavras(char palavras[920][16], const char *nome_do_arquivo)
   if (arquivo == NULL)
   {
     perror("Erro ao abrir o arquivo");
+    tela_atualiza();
     return 0;
   }
 
@@ -112,6 +113,7 @@ void popular_matriz(char palavras[10][16])
     int indice_aleatorio = rand() % num_palavras;
     strcpy(palavras[i], banco_de_palavras[indice_aleatorio]);
     printf("Palavra %d: %s\n", i + 1, palavras[i]); // Imprime cada palavra
+    tela_atualiza();
   }
 }
 
@@ -146,9 +148,6 @@ int encontra_palavra_com_letra(char palavras[10][16], char letra)
 
 void jogo()
 {
-  tela_limpa();
-  tela_lincol(1, 1);
-
   int quantidade_de_palavras_acertadas = 0;
   int quantidade_de_palavras = 10; // Novo controle para a quantidade de palavras na matriz.
 
@@ -164,15 +163,18 @@ void jogo()
     if (resta <= 0)
     {
       printf("Tempo esgotado\n");
+      tela_atualiza();
       break;
     }
 
     mostra_matriz(string_alvo); // Mostra todas as palavras
     printf("Você tem %.1f segundos\n", resta);
+    tela_atualiza();
 
     if (palavra_selecionada == -1)
     {
       printf("Digite uma letra para selecionar uma palavra: ");
+      tela_atualiza();
     }
     else
     {
@@ -184,6 +186,7 @@ void jogo()
       tela_cor_letra(0, 255, 0);
 
       printf("Digite a próxima letra: ");
+      tela_atualiza();
     }
 
     char letra = tecla_le_char();
@@ -194,6 +197,7 @@ void jogo()
       if (palavra_selecionada == -1)
       {
         printf("Nenhuma palavra encontrada com essa letra. Tente novamente.\n");
+        tela_atualiza();
       }
     }
     else
@@ -215,6 +219,7 @@ void jogo()
       if (!letra_encontrada)
       {
         printf("Letra não encontrada na palavra selecionada. Tente novamente.\n");
+        tela_atualiza();
       }
 
       // Verifica se a palavra foi toda acertada
@@ -225,16 +230,17 @@ void jogo()
         quantidade_de_palavras_acertadas++;
         quantidade_de_palavras--; // Diminui a contagem total de palavras.
         palavra_selecionada = -1; // Permite selecionar uma nova palavra
+        tela_atualiza();
       }
     }
 
     if (quantidade_de_palavras_acertadas == TOTAL_DE_PALAVRAS)
     {
       printf("Parabéns, você acertou todas as palavras!\n");
+      tela_atualiza();
       break;
     }
   }
-  tela_atualiza();
 }
 
 void espera_enter()
@@ -247,36 +253,25 @@ void espera_enter()
 
 void apresentacao()
 {
-  tela_limpa();
-  tela_lincol(1, 1);
-
   printf("Você deve digitar as palavras que aparecerão na tela.\n");
   printf("A ordem nao é importante.\n");
   printf("Tecle <enter> para iniciar. ");
-  espera_enter();
-
   tela_atualiza();
+  espera_enter();
 }
 
 void encerramento()
 {
-  tela_limpa();
-  tela_lincol(1, 1);
-
   printf("Até a próxima.\n");
-
   tela_atualiza();
 }
 
 bool quer_jogar_de_novo()
 {
-  tela_limpa();
-  tela_lincol(1, 1);
-
-  printf("Tecle <enter> para jogar de novo. ");
   espera_enter();
 
   printf("Digite 's' para jogar de novo: ");
+  tela_atualiza();
   while (true)
   {
     char c = getchar();
@@ -290,7 +285,6 @@ bool quer_jogar_de_novo()
       return true;
     }
   }
-  tela_atualiza();
 }
 
 void remove_letra(char v[], int pos)
