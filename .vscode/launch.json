@@ -7,9 +7,9 @@
       "request": "launch",
       "args": [],
       "stopAtEntry": false,
-      "externalConsole": true,
-      "cwd": "//wsl.localhost/Ubuntu/home/douglas/Groot/T3",
-      "program": "//wsl.localhost/Ubuntu/home/douglas/Groot/T3/build/Debug/outDebug",
+      "externalConsole": false,
+      "cwd": "/home/douglas/Groot/T2",
+      "program": "/home/douglas/Groot/T2/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [
