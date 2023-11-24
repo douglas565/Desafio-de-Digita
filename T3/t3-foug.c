@@ -28,6 +28,7 @@ typedef enum {
 typedef struct {
   valor_t valor;
   naipe_t naipe;
+  bool aberta;
 } carta_t;
 
 // registro que representa uma pilha de cartas
@@ -102,7 +103,7 @@ void retona_top(pilha_t *p, carta_t *c)
     *c = p->cartas[p->n_cartas - 1];
 }
 
-void remove_do_topo(pilha_t *p)
+carta_t remove_do_topo(pilha_t *p)
 {
   assert(!pilha_vazia(p));
    carta_t c = p->cartas[p->n_cartas - 1];
@@ -114,15 +115,45 @@ void move_cartas_entre_pilhas(pilha_t *p1, pilha_t *p2, int n)
 {
   assert(p1->n_cartas >= n);
   assert(p2->n_cartas + n <= 52);
+  
   for (int i = 0; i < n; i++) {
     empilha_carta(remove_do_topo(p1), p2);
   }
 }
 
 
+void abre_cartas_no_topo(pilha_t *p, int n)
+{
+  assert(p->n_cartas >= n);
+  for (int i = 0; i < n; i++) {
+    abre_card_no_top_da_pilha(p);
+  }
+}
+
+void abre_card_no_top_da_pilha(pilha_t *p)
+{
+  assert(!pilha_vazia(p));
+  p->cartas[p->n_cartas - 1].aberta = true;
+}
 
 
-int main()
+void fecha_card_no_top_da_pilha(pilha_t *p)
+{
+  assert(!pilha_vazia(p));
+  p->cartas[p->n_cartas - 1].aberta = false;
+}
+
+void descricao_carta(carta_t c, char *descricao)
+{
+  char *valores[] = {"", "A", "2", "3", "4", "5", "6", "7", "8", "9",
+                     "10", "J", "Q", "K"};
+  char *naipes[] = {"", "ouros", "copas", "espadas", "paus"};
+  sprintf(descricao, "%s de %s", valores[c.valor], naipes[c.naipe]);
+}
+
+void 
+
+int main(int argc, char *argv[])
 {
   // inicializa algumas variáveis para testar a função pode_empilhar
   pilha_t pilha = { 2, {{rei, copas}, {valete, ouros}}};
