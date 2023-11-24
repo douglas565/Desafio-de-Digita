@@ -15,6 +15,15 @@
 #define TEMPO 100
 #define TOTAL_DE_PALAVRAS 10
 
+typedef struct
+{
+  int pos_horizontal;
+  int pos_vertical;
+  char palavra[16];
+  bool ativacao;
+} Palavra;
+
+
 void reorganiza_matriz(char palavras[10][16], int index_acertado);
 void remove_letra(char v[], int pos);
 void apresentacao();
