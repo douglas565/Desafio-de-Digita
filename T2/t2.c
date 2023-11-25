@@ -17,11 +17,10 @@
 
 typedef struct
 {
+  char palavra[16];
   int pos_horizontal;
   int pos_vertical;
-  char palavra[16];
-  int tempo_palavra;
-  bool ativacao;
+  bool ativo;
 } Palavra;
 
 

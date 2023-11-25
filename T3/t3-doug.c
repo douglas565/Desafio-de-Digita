@@ -151,7 +151,7 @@ void descricao_carta(carta_t c, char *descricao)
   sprintf(descricao, "%s de %s", valores[c.valor], naipes[c.naipe]);
 }
 
-void 
+ 
 
 int main(int argc, char *argv[])
 {
