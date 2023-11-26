@@ -15,12 +15,12 @@
 #define TEMPO 100
 #define TOTAL_DE_PALAVRAS 10
 
-typedef struct
-{
-  char palavra[16];
-  int pos_horizontal;
-  int pos_vertical;
-  bool ativo;
+typedef struct {
+    char* texto;
+    float pos;
+    float t_ativa;
+    float t_dig;
+    int ativa;
 } Palavra;
 
 
@@ -45,11 +45,11 @@ int main()
   //  for que vai gera uma letra aleatoria
   do
   {
-    tecla_ini();
+    tela_ini();
     tecla_ini();
     jogo();
     tecla_fim();
-    tecla_fim();
+    tela_fim();
 
   } while (quer_jogar_de_novo());
 
@@ -126,7 +126,7 @@ void popular_matriz(char palavras[10][16])
   }
 }
 
-void mostra_matriz(char palavras[10][16])
+ void mostra_matriz(char palavras[10][16])
 {
   tela_limpa();
   tela_lincol(1, 1);
@@ -141,6 +141,52 @@ void mostra_matriz(char palavras[10][16])
 
   tela_atualiza();
 }
+
+Palavra* cria_palavra(char* texto) {
+    Palavra* p = malloc(sizeof(Palavra));
+    p->texto = texto;
+    p->pos = (float)rand() / RAND_MAX * 100;
+    p->t_ativa = (float)rand() / RAND_MAX * 20;
+    p->t_dig = (float)rand() / RAND_MAX * 25 + 5;
+    p->ativa = 0;
+    return p;
+}
+
+void atualiza(Palavra* p, float t_jogo) {
+    if (t_jogo >= p->t_ativa) {
+        p->ativa = 1;
+    }
+}
+
+void calcula_posicao(Palavra* p, int larg, int l_ini, int alt, float t_jogo, int* linha, int* coluna) {
+    int tam = strlen(p->texto);
+    *coluna = (larg - tam) * p->pos / 100;
+    *linha = l_ini + alt * (t_jogo - p->t_ativa) / p->t_dig;
+}
+
+void mostra_tela(Palavra** palavras, int num_palavras, int larg, int l_ini, int alt, float t_jogo) {
+    for (int i = 0; i < num_palavras; i++) {
+        if (palavras[i]->ativa) {
+            int linha, coluna;
+            calcula_posicao(palavras[i], larg, l_ini, alt, t_jogo, &linha, &coluna);
+            printf("Palavra: %s, Linha: %d, Coluna: %d\n", palavras[i]->texto, linha, coluna);
+        }
+    }
+}
+
+void processa_entrada(Palavra** palavras, int num_palavras, char* entrada) {
+    for (int i = 0; i < num_palavras; i++) {
+        if (palavras[i]->ativa && strcmp(palavras[i]->texto, entrada) == 0) {
+            free(palavras[i]);
+            for (int j = i; j < num_palavras - 1; j++) {
+                palavras[j] = palavras[j + 1];
+            }
+            num_palavras--;
+            break;
+        }
+    }
+}
+
 
 int encontra_palavra_com_letra(char palavras[10][16], char letra)
 {
@@ -159,6 +205,31 @@ void jogo()
 {
   int quantidade_de_palavras_acertadas = 0;
   int quantidade_de_palavras = 10; // Novo controle para a quantidade de palavras na matriz.
+
+Palavra* palavras[3];
+    palavras[0] = cria_palavra("palavra1");
+    palavras[1] = cria_palavra("palavra2");
+    palavras[2] = cria_palavra("palavra3");
+    int num_palavras = 3;
+    int larg = 100;
+    int l_ini = 0;
+    int alt = 20;
+    time_t t_inicio = time(NULL);
+
+    while (1) {
+        float t_jogo = difftime(time(NULL), t_inicio);
+        for (int i = 0; i < num_palavras; i++) {
+            atualiza(palavras[i], t_jogo);
+        }
+        mostra_tela(palavras, num_palavras, larg, l_ini, alt, t_jogo);
+        char entrada[50];
+        scanf("%s", entrada);
+        processa_entrada(palavras, num_palavras, entrada);
+        if (num_palavras == 0) {
+            break;
+        }
+    }
+
 
   char string_alvo[10][16]; // Matriz para as palavras que o jogador deve adivinhar
   popular_matriz(string_alvo);

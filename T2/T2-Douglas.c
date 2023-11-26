@@ -36,11 +36,11 @@ int main()
   //  for que vai gera uma letra aleatoria
   do
   {
-    tecla_ini();
+    tela_ini();
     tecla_ini();
     jogo();
     tecla_fim();
-    tecla_fim();
+    tela_fim();
 
   } while (quer_jogar_de_novo());
 

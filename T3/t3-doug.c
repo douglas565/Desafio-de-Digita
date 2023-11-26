@@ -1,6 +1,9 @@
 // Programa de exemplo de uso de typedef, struct e enum
 #include <stdbool.h>
 #include <stdio.h>
+#include <assert.h>
+#include <string.h>
+#include <stdlib.h>
 #include "tela.h"
 
 // enums para dar nomes a valores constantes, de forma organizada
@@ -69,6 +72,7 @@ void desenha_carta(carta_t c)
   tela_cor_normal();
 }
 
+
 // teste se a carta c pode ser empilhada na pilha p, no jogo "solitaire"
 // em uma pilha vazia, pode-se empilhar somente um rei
 // senão, só pode ser empilhada uma carta de cor diferente e
@@ -90,6 +94,11 @@ bool pilha_vazia(pilha_t *p)
 
     return p->n_cartas == 0;
 
+}
+
+bool pilha_cheia(pilha_t *p)
+{
+    return p->n_cartas == 52;
 }
 
 void empilha_carta(carta_t c, pilha_t *p)
@@ -122,6 +131,13 @@ void move_cartas_entre_pilhas(pilha_t *p1, pilha_t *p2, int n)
 }
 
 
+void abre_card_no_top_da_pilha(pilha_t *p)
+{
+  assert(!pilha_vazia(p));
+  p->cartas[p->n_cartas - 1].aberta = true;
+}
+ 
+
 void abre_cartas_no_topo(pilha_t *p, int n)
 {
   assert(p->n_cartas >= n);
@@ -130,18 +146,7 @@ void abre_cartas_no_topo(pilha_t *p, int n)
   }
 }
 
-void abre_card_no_top_da_pilha(pilha_t *p)
-{
-  assert(!pilha_vazia(p));
-  p->cartas[p->n_cartas - 1].aberta = true;
-}
 
-
-void fecha_card_no_top_da_pilha(pilha_t *p)
-{
-  assert(!pilha_vazia(p));
-  p->cartas[p->n_cartas - 1].aberta = false;
-}
 
 void descricao_carta(carta_t c, char *descricao)
 {
