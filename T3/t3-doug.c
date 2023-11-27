@@ -103,8 +103,15 @@ bool pilha_cheia(pilha_t *p)
 
 void empilha_carta(carta_t c, pilha_t *p)
 {
-    p->cartas[p->n_cartas] = c;
-    p->n_cartas++;
+  if (pilha_vazia(p)) {
+    c.aberta = true;
+  } else {
+    carta_t topo = p->cartas[p->n_cartas - 1];
+    c.aberta = topo.aberta;
+  }
+  
+  p->cartas[p->n_cartas] = c;
+  p->n_cartas++;
 }
 
 void retona_top(pilha_t *p, carta_t *c)
@@ -126,10 +133,11 @@ void move_cartas_entre_pilhas(pilha_t *p1, pilha_t *p2, int n)
   assert(p2->n_cartas + n <= 52);
   
   for (int i = 0; i < n; i++) {
-    empilha_carta(remove_do_topo(p1), p2);
+    carta_t carta = remove_do_topo(p1);
+    carta.aberta = true;
+    empilha_carta(carta, p2);
   }
 }
-
 
 void abre_card_no_top_da_pilha(pilha_t *p)
 {
@@ -144,6 +152,85 @@ void abre_cartas_no_topo(pilha_t *p, int n)
   for (int i = 0; i < n; i++) {
     abre_card_no_top_da_pilha(p);
   }
+}
+
+void fecha_cartas_no_topo(pilha_t *p, int n)
+{
+  assert(p->n_cartas >= n);
+  for (int i = 0; i < n; i++) {
+    p->cartas[p->n_cartas - 1 - i].aberta = false;
+  }
+}
+
+void esvazia_uma_pilha(pilha_t *p)
+{
+  p->n_cartas = 0;
+}
+
+void gera_baralho_inteiro(pilha_t *p)
+{
+  assert(pilha_vazia(p));
+  esvazia_uma_pilha(p);
+  
+  carta_t baralho[52];
+  
+  int index = 0;
+  for (naipe_t n = ouros; n <= paus; n++) {
+    for (valor_t v = as; v <= rei; v++) {
+      carta_t c = { v, n };
+      baralho[index] = c;
+      index++;
+    }
+  }
+  
+  for (int i = 0; i < 52; i++) {
+    int j = rand() % 52;
+    carta_t temp = baralho[i];
+    baralho[i] = baralho[j];
+    baralho[j] = temp;
+  }
+  
+  for (int i = 0; i < 52; i++) {
+    empilha_carta(baralho[i], p);
+  }
+}
+
+void embaralha_cartas_em_uma_pilha(pilha_t *p)
+{
+  assert(!pilha_vazia(p));
+  
+  carta_t baralho[52];
+  
+  int index = 0;
+  for (int i = 0; i < p->n_cartas; i++) {
+    baralho[index] = remove_do_topo(p);
+    index++;
+  }
+  
+  for (int i = 0; i < p->n_cartas; i++) {
+    int j = rand() % p->n_cartas;
+    carta_t temp = baralho[i];
+    baralho[i] = baralho[j];
+    baralho[j] = temp;
+  }
+  
+  for (int i = 0; i < p->n_cartas; i++) {
+    empilha_carta(baralho[i], p);
+  }
+}
+
+int n_cartas_na_pilha(pilha_t *p)
+{
+  return p->n_cartas;
+}
+
+int n_cartas_viradas_na_pilha(pilha_t *p)
+{
+  int n = 0;
+  for (int i = 0; i < p->n_cartas; i++) {
+    if (p->cartas[i].aberta) n++;
+  }
+  return n;
 }
 
 

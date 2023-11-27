@@ -17,10 +17,11 @@
 
 typedef struct
 {
-  int pos_horizontal;
-  int pos_vertical;
-  int hora_ativacao;
-  int tempo_digitacao;
+  float pos_horizontal;
+  float pos_vertical;
+  float hora_ativacao;
+  float tempo_digitacao;
+  char palavra[16];
   bool ativa;
 } palavras;
 
@@ -30,12 +31,12 @@ void reorganiza_matriz(char palavras[10][16], int index_acertado);
 void remove_letra(char v[], int pos);
 void apresentacao();
 void encerramento();
+void mostra_matriz(double tempo_restante, int indice, double inicio);
 void jogo();
 bool quer_jogar_de_novo();
 void preenche_vet(char v[], int min_len, int max_len);
-void mostra_vet(char v[]);
 void espera_enter();
-void popular_matriz(char palavras[10][16]);
+void popular_matriz();
 
 int main()
 {
@@ -114,7 +115,7 @@ void Sorteia_palavra(char v[], int min_len, int max_len)
   v[len] = '\0'; // Termina a string com o caractere nulo
 }
 
-void popular_matriz(char palavras[10][16])
+void popular_matriz()
 {
   char banco_de_palavras[920][16];
   int num_palavras = ler_banco_de_palavras(banco_de_palavras, "palavras.txt");
@@ -122,13 +123,11 @@ void popular_matriz(char palavras[10][16])
   for (int i = 0; i < 10; i++)
   {
     int indice_aleatorio = rand() % num_palavras;
-    strcpy(palavras[i], banco_de_palavras[indice_aleatorio]);
-    printf("Palavra %d: %s\n", i + 1, palavras[i]); // Imprime cada palavra
-    tela_atualiza();
+    strcpy(vetPalavras[i].palavra, banco_de_palavras[indice_aleatorio]);
   }
 }
 
-void mostra_matriz(char palavras[10][16], double tempo_restante, int indice, double inicio)
+void mostra_matriz(double tempo_restante, int indice, double inicio)
 {
   tela_limpa();
   int i;
@@ -139,7 +138,7 @@ void mostra_matriz(char palavras[10][16], double tempo_restante, int indice, dou
   for (i = 0; i < 10; i++)
   {
     // testa se a palavra está vazia, caso sim não printa
-    if (palavras[i][0] == '\0')
+    if (vetPalavras[i].palavra[0] == '\0')
     {
       continue;
     }
@@ -159,9 +158,16 @@ void mostra_matriz(char palavras[10][16], double tempo_restante, int indice, dou
       lin = vetPalavras[i].pos_vertical;
       col = vetPalavras[i].pos_horizontal;
       tela_lincol(lin, col);
-      printf("%s", palavras[i]);
+      printf("%s", vetPalavras[i].palavra);
       vetPalavras[i].pos_vertical = 2 + alt * ((tela_relogio() - inicio) - vetPalavras[i].hora_ativacao) / vetPalavras[i].tempo_digitacao;
       vetPalavras[i].ativa = true;
+    }
+    if (indice != -1)
+    {
+      tela_cor_letra(255, 0, 0);
+      printf("%s\n", vetPalavras[indice].palavra);
+      tela_cor_letra(0, 255, 0);
+      tela_atualiza();
     }
   }
   tela_cor_normal();
@@ -170,11 +176,11 @@ void mostra_matriz(char palavras[10][16], double tempo_restante, int indice, dou
   tela_atualiza();
 }
 
-int encontra_palavra_com_letra(char palavras[10][16], char letra, int posicao)
+int encontra_palavra_com_letra(char letra, int posicao)
 {
   for (int i = 0; i < 10; i++)
   { // varre todas a linhas da matriz
-    if (palavras[10][16] == letra && vetPalavras[i].ativa == true)
+    if (vetPalavras[i].palavra[0] == letra && vetPalavras[i].ativa == true)
     { // testa se a letra digitada é igual a primeira letra de cada linha, caso for retorna a linha da matriz onde está a palavra
       return i;
     }
@@ -182,57 +188,73 @@ int encontra_palavra_com_letra(char palavras[10][16], char letra, int posicao)
   return -1;
 }
 
-bool testa_tempoDigitacao(char palavras[][16], double inicio)
-{
-  for (int i = 0; i < 10; i++)
-  {
-
-    if ((vetPalavras[i].tempo_digitacao + vetPalavras[i].hora_ativacao <= (tela_relogio() - inicio)) && palavras[i][0] != '\0')
-    {
-      return true;
-    }
-  }
-  return false;
-}
 void jogo()
 {
-  char palavras[10][16];
-  char Selecionadas[10][16];
-  int indice = -1;
-  int qtdePalavras = 10;
-  double inicio = tela_relogio(); // Fix: Define the variable "inicio" and initialize it with the current time
-  double tempo_restante;          // Fix: Declare the variable "tempo_restante"
+  int quantidade_de_palavras_acertadas = 0;
+  int quantidade_de_palavras = 10; // Novo controle para a quantidade de palavras na matriz.
 
-  while (true)
+  popular_matriz(vetPalavras);
+
+  long t0 = tela_relogio();
+  int palavra_selecionada = -1; // Nenhuma palavra selecionada inicialmente
+
+  while (quantidade_de_palavras_acertadas < TOTAL_DE_PALAVRAS)
   {
-    tempo_restante = TEMPO - (tela_relogio() - inicio); // Fix: Calculate the remaining time
-    if (testa_tempoDigitacao(palavras, inicio) || qtdePalavras == 0)
-    {
-      break;
-    }
-    mostra_matriz(palavras, tempo_restante, indice, inicio);
+    double resta = TEMPO - (tela_relogio() - t0);
+
+    mostra_matriz(resta, palavra_selecionada, t0); // Mostra todas as palavras na tela
+
     char letra = tecla_le_char();
-    if (letra != '\0')
+
+    if (palavra_selecionada == -1)
     {
-      if (indice < 0)
+      palavra_selecionada = encontra_palavra_com_letra(letra, 0);
+    }
+    else
+    {
+      // Procura a letra na palavra selecionada e a remove se encontrada
+      int letra_encontrada = 0;
+      for (int i = 0; i < 10 && vetPalavras[palavra_selecionada].palavra[0] != '\0'; i++)
       {
-        indice = encontra_palavra_com_letra(palavras, letra, indice);
-      }
-      if (indice >= 0)
-      {
-        remove_letra(palavras[indice], letra);
-        if (palavras[indice][0] == '\0')
+        if (vetPalavras[palavra_selecionada].palavra[0] == letra)
         {
-          qtdePalavras--;
-          indice = -1;
+          remove_letra(vetPalavras[palavra_selecionada].palavra, i);
+          letra_encontrada = 1;
+          break;
         }
       }
+
+      // Verifica se a palavra foi toda acertada
+      if (vetPalavras[palavra_selecionada].palavra[0] == '\0')
+      {
+        //reorganiza_matriz(vetPalavras, palavra_selecionada);
+        quantidade_de_palavras_acertadas++;
+        quantidade_de_palavras--; // Diminui a contagem total de palavras.
+        palavra_selecionada = -1; // Permite selecionar uma nova palavra
+      }
     }
+
+    if (quantidade_de_palavras_acertadas == TOTAL_DE_PALAVRAS)
+    {
+      printf("Parabéns, você acertou todas as palavras!\n");
+
+      break;
+    }
+    tela_atualiza();
+  }
+}
+
+void espera_enter()
+{
+  while (getchar() != '\n')
+  {
+    // não faz nada
   }
 }
 
 void apresentacao()
 {
+  tela_limpa();
   printf("Você deve digitar as palavras que aparecerão na tela.\n");
   printf("A ordem nao é importante.\n");
   printf("Tecle <enter> para iniciar. ");
@@ -280,24 +302,6 @@ void remove_letra(char v[], int pos)
   }
 }
 
-void reorganiza_matriz(char palavras[10][16], int index_acertado)
-{
-  for (int i = index_acertado; i < 9; i++)
-  {
-    int j;
-    for (j = 0; palavras[i + 1][j] != '\0'; j++)
-    {
-      palavras[i][j] = palavras[i + 1][j];
-    }
-    palavras[i][j] = '\0'; // Termina a string atual após a cópia.
-  }
-  // Limpa a última posição da matriz após mover todas as palavras.
-  for (int j = 0; palavras[9][j] != '\0'; j++)
-  {
-    palavras[9][j] = '\0';
-  }
-}
-
 void processa_Palavra(char palavras[][16], int indice, double inicio)
 {
   int larg = tela_ncol();
@@ -312,4 +316,17 @@ void processa_Palavra(char palavras[][16], int indice, double inicio)
     vetPalavras[i].pos_horizontal = (larg - tamPalavra) * (rand() % 101) / 100;
     vetPalavras[i].pos_vertical = 2 + alt * ((tela_relogio() - inicio) - vetPalavras[i].hora_ativacao) / vetPalavras[i].tempo_digitacao;
   }
+}
+
+bool testa_tempoDigitacao(char palavras[][16], double inicio)
+{
+  for (int i = 0; i < 10; i++)
+  {
+
+    if ((vetPalavras[i].tempo_digitacao + vetPalavras[i].hora_ativacao <= (tela_relogio() - inicio)) && palavras[i][0] != '\0')
+    {
+      return true;
+    }
+  }
+  return false;
 }

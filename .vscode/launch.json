@@ -8,8 +8,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": false,
-      "cwd": "/home/douglas/Groot/T2",
-      "program": "/home/douglas/Groot/T2/build/Debug/outDebug",
+      "cwd": "/home/douglas/Groot/T3",
+      "program": "/home/douglas/Groot/T3/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [
