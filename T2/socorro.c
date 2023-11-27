@@ -227,7 +227,6 @@ void jogo()
       // Verifica se a palavra foi toda acertada
       if (vetPalavras[palavra_selecionada].palavra[0] == '\0')
       {
-        //reorganiza_matriz(vetPalavras, palavra_selecionada);
         quantidade_de_palavras_acertadas++;
         quantidade_de_palavras--; // Diminui a contagem total de palavras.
         palavra_selecionada = -1; // Permite selecionar uma nova palavra
