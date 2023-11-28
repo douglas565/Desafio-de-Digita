@@ -135,7 +135,7 @@ void mostra_matriz(double tempo_restante, int indice, double inicio)
   int col;
   int alt = tela_nlin();
   // lacço principal para cada palavra
-  for (i = 0; i < 10; i++)
+  for (i = 0; i < TOTAL_DE_PALAVRAS; i++)
   {
     // testa se a palavra está vazia, caso sim não printa
     if (vetPalavras[i].palavra[0] == '\0')
@@ -227,6 +227,7 @@ void jogo()
       // Verifica se a palavra foi toda acertada
       if (vetPalavras[palavra_selecionada].palavra[0] == '\0')
       {
+     
         quantidade_de_palavras_acertadas++;
         quantidade_de_palavras--; // Diminui a contagem total de palavras.
         palavra_selecionada = -1; // Permite selecionar uma nova palavra
