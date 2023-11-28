@@ -32,11 +32,16 @@ void remove_letra(char v[], int pos);
 void apresentacao();
 void encerramento();
 void mostra_matriz(double tempo_restante, int indice, double inicio);
-void jogo();
 bool quer_jogar_de_novo();
 void preenche_vet(char v[], int min_len, int max_len);
 void espera_enter();
 void popular_matriz();
+void Sorteia_palavra(char v[], int min_len, int max_len);
+int encontra_palavra_com_letra(char letra, int posicao);
+void processa_Palavra(char palavras[][16], int indice, double inicio);
+bool testa_tempoDigitacao(char palavras[][16], double inicio);
+void jogo();
+
 
 int main()
 {
