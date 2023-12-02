@@ -9,6 +9,7 @@
 #include <time.h>
 #include <string.h>
 
+#include "ranking.txt"
 #include "tecla.h"
 #include "tela.h"
 
@@ -16,10 +17,11 @@
 #define TOTAL_DE_PALAVRAS 10
 #define ponts_max 100
 #define descont_l_errada 10
+#define ranking 3
 
 typedef struct
 {
-  float pontos;
+  int pontos;
   char identificador[16];
 
 } recorde;
@@ -140,6 +142,59 @@ void popular_matriz()
   }
 }
 
+void atualizar_recorde(float pontos, const char *identificador)
+{
+  // Atualiza os recordes se necessário
+  for (int i = 0; i < 3; i++)
+  {
+    if (pontos > recordes[i].pontos)
+    {
+      for (int j = 2; j > i; j--)
+      {
+        recordes[j] = recordes[j - 1];
+      }
+      recordes[i].pontos = pontos;
+      strcpy(recordes[i].identificador, identificador);
+      break;
+    }
+  }
+}
+
+void carregar_recorde()
+{
+  FILE *arquivo = fopen("recordes.txt", "r");
+  if (arquivo == NULL)
+  {
+    // Caso o arquivo não exista, inicializa os recordes
+    for (int i = 0; i < 3; i++)
+    {
+      recordes[i].pontos = 0.0;
+      strcpy(recordes[i].identificador, "");
+    }
+    return;
+  }
+
+  // Lê os recordes do arquivo
+  fread(recordes, sizeof(ranking), 3, arquivo);
+
+  fclose(arquivo);
+}
+
+void salvar_recorde()
+{
+  FILE *arquivo = fopen("recordes.txt", "w");
+  if (arquivo == NULL)
+  {
+    perror("Erro ao abrir o arquivo de recordes para escrita");
+    return;
+  }
+
+  // Grava os recordes no arquivo
+  fwrite(recordes, sizeof(ranking), 3, arquivo);
+
+  fclose(arquivo);
+}
+
 void mostrar_tela(double tempo_restante, int indice, double inicio)
 {
   tela_limpa();
@@ -217,12 +272,14 @@ void jogo()
 {
   int quantidade_de_palavras_acertadas = 0;
   int quantidade_de_palavras = 10; // Novo controle para a quantidade de palavras na matriz.
-  float pontos = 0;
 
   popular_matriz(vetPalavras);
   long t0 = tela_relogio();
   processa_Palavra(vetPalavras, t0);
   double resta;
+  double inicio = tela_relogio();
+
+  float pontos = 0;
 
   int palavra_selecionada = -1; // Nenhuma palavra selecionada inicialmente
 
@@ -264,50 +321,36 @@ void jogo()
         quantidade_de_palavras--; // Diminui a contagem total de palavras.
         palavra_selecionada = -1; // Permite selecionar uma nova palavra
       }
-    }
-
-    // Verifica se a palavra foi toda acertada
-    if (vetPalavras[*palavra_selecionada].palavra[0] == '\0')
-    {
-      quantidade_de_palavras_acertadas++;
-      *letra = '0';
-      quantidade_de_palavras--;  // Diminui a contagem total de palavras.
-      *palavra_selecionada = -1; // Permite selecionar uma nova palavra
-    }
-
-    // Atualiza a pontuação
-    *pontos += calcular_pontos(tela_relogio(), inicio);
-  }
-
-  else
-  {
-    // Desconta pontos por letra errada
-    *pontos -= des;
-    if (*pontos < 0)
-    {
-      *pontos = 0;
-    }
-  }
-
-  if (quantidade_de_palavras_acertadas == TOTAL_DE_PALAVRAS || testa_tempoDigitacao(vetPalavras, t0))
-  {
-    tela_limpa();
-    tela_lincol(tela_nlin() / 2, tela_ncol() / 2);
-    if (quantidade_de_palavras_acertadas == TOTAL_DE_PALAVRAS)
-    {
-      printf("Parabéns, você acertou todas as palavras!");
+       // Atualiza a pontuação
+        pontos += calcular_pontos(tela_relogio(), inicio);
     }
     else
-    {
-      printf("Tempo Esgotado!");
+    { 
+      // Desconta pontos por letra errada
+      *pontos -= descont_l_errada;
+      if (*pontos < 0)
+      {
+        *pontos = 0;
+      }
     }
-    break;
-  }
 
+    if (quantidade_de_palavras_acertadas == TOTAL_DE_PALAVRAS || testa_tempoDigitacao(vetPalavras, t0))
+    {
+      tela_limpa();
+      tela_lincol(tela_nlin() / 2, tela_ncol() / 2);
+      if (quantidade_de_palavras_acertadas == TOTAL_DE_PALAVRAS)
+      {
+        printf("Parabéns, você acertou todas as palavras!");
+      }
+      else
+      {
+        printf("Tempo Esgotado!");
+      }
+      break;
+    }
+  }
   tela_atualiza();
 }
-
-
 
 void espera_enter()
 {
@@ -393,57 +436,4 @@ bool testa_tempoDigitacao(palavras palavrasJogo[], double inicio)
     }
   }
   return false;
-}
-
-void atualizar_recorde(float pontos, const char *identificador)
-{
-  // Atualiza os recordes se necessário
-  for (int i = 0; i < 3; i++)
-  {
-    if (pontos > recordes[i].pontos)
-    {
-      for (int j = 2; j > i; j--)
-      {
-        recordes[j] = recordes[j - 1];
-      }
-      recordes[i].pontos = pontos;
-      strcpy(recordes[i].identificador, identificador);
-      break;
-    }
-  }
-}
-
-void carregar_recorde()
-{
-  FILE *arquivo = fopen("recordes.txt", "r");
-  if (arquivo == NULL)
-  {
-    // Caso o arquivo não exista, inicializa os recordes
-    for (int i = 0; i < 3; i++)
-    {
-      recordes[i].pontos = 0.0;
-      strcpy(recordes[i].identificador, "");
-    }
-    return;
-  }
-
-  // Lê os recordes do arquivo
-  fread(recordes, sizeof(ranking), 3, arquivo);
-
-  fclose(arquivo);
-}
-
-void salvar_recorde()
-{
-  FILE *arquivo = fopen("recordes.txt", "w");
-  if (arquivo == NULL)
-  {
-    perror("Erro ao abrir o arquivo de recordes para escrita");
-    return;
-  }
-
-  // Grava os recordes no arquivo
-  fwrite(recordes, sizeof(ranking), 3, arquivo);
-
-  fclose(arquivo);
 }
