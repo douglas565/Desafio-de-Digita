@@ -43,7 +43,7 @@ void reorganiza_matriz(char palavras[10][16], int index_acertado);
 void remove_letra(char v[], int pos);
 void apresentacao();
 void encerramento();
-void mostrar_tela(double tempo_restante, int indice, double inicio);
+void mostrar_tela(double tempo_restante, int indice, double inicio, int ponto);
 bool quer_jogar_de_novo();
 void preenche_vet(char v[], int min_len, int max_len);
 void espera_enter();
@@ -142,7 +142,7 @@ void popular_matriz()
   }
 }
 
-void atualizar_recorde(float pontos, const char *identificador)
+void atualizar_recorde(float pontos, const char *identificador, recorde recordes[3])
 {
   // Atualiza os recordes se necessário
   for (int i = 0; i < 3; i++)
@@ -162,7 +162,7 @@ void atualizar_recorde(float pontos, const char *identificador)
 
 void carregar_recorde()
 {
-  FILE *arquivo = fopen("recordes.txt", "r");
+  FILE *arquivo = fopen("ranking.txt", "r");
   if (arquivo == NULL)
   {
     // Caso o arquivo não exista, inicializa os recordes
@@ -195,10 +195,9 @@ void salvar_recorde()
   fclose(arquivo);
 }
 
-void mostrar_tela(double tempo_restante, int indice, double inicio)
+void mostrar_tela(double tempo_restante, int indice, double inicio, int pontos)
 {
   tela_limpa();
-  float pontos = 0;
   int i;
   int lin;
   int col;
@@ -237,9 +236,9 @@ void mostrar_tela(double tempo_restante, int indice, double inicio)
   printf("digite as palavras conforme aparecem:");
   tela_atualiza();
 
-  tela_cor_normal();
-  tela_lincol(0, 0);
-  printf("Pontos: %.2f", pontos); // Mostra a pontuação na tela
+  tela_cor_letra(0, 205, 10);
+  tela_lincol(tela_nlin(), tela_ncol() / 2 - 5 / 2);
+  printf("Pontos: %d", pontos); // Mostra a pontuação na tela
   tela_atualiza();
 }
 
@@ -267,6 +266,25 @@ float calcular_pontos(double tempo_atual, double tempo_anterior)
     return ponts_max * (1 - tempo_diff);
   }
 }
+void pontuacao(double *t0, double t1, int *pontos)
+{
+  double dt = t1 - (*t0);
+  if (dt >= 1)
+  {
+    *pontos += 1;
+  }
+  else
+  {
+    *pontos += 100 * (1 - dt);
+  }
+  *t0=t1;
+}
+void errou(int *pontos){
+  *pontos =(*pontos) - 1;
+  if(*pontos<0){
+    *pontos = 0;
+  }
+}
 
 void jogo()
 {
@@ -276,22 +294,24 @@ void jogo()
   popular_matriz(vetPalavras);
   long t0 = tela_relogio();
   processa_Palavra(vetPalavras, t0);
+
+  carregar_recorde();
+
   double resta;
+  double tempo = tela_relogio();
   double inicio = tela_relogio();
 
-  float pontos = 0;
-
+  int pontos = 0;
   int palavra_selecionada = -1; // Nenhuma palavra selecionada inicialmente
-
   while (quantidade_de_palavras_acertadas <= TOTAL_DE_PALAVRAS)
   {
     printf("%d  %d\n", quantidade_de_palavras_acertadas, TOTAL_DE_PALAVRAS);
 
     resta = TEMPO - (tela_relogio() - t0);
-
-    mostrar_tela(resta, palavra_selecionada, t0); // Mostra todas as palavras na tela
+    mostrar_tela(resta, palavra_selecionada, t0, pontos); // Mostra todas as palavras na tela
 
     char letra = tecla_le_char();
+    char letraTemp;
     printf("%c\n", letra);
     printf("%c\n", vetPalavras[palavra_selecionada].palavra[0]);
 
@@ -307,9 +327,14 @@ void jogo()
       {
         if (vetPalavras[palavra_selecionada].palavra[0] == letra)
         {
+          letraTemp=letra;
           remove_letra(vetPalavras[palavra_selecionada].palavra, i);
           letra_encontrada = 1;
+          pontuacao(&tempo, tela_relogio(), &pontos);
           break;
+        }
+        else if(letra!=0){
+          errou(&pontos);
         }
       }
 
@@ -321,18 +346,8 @@ void jogo()
         quantidade_de_palavras--; // Diminui a contagem total de palavras.
         palavra_selecionada = -1; // Permite selecionar uma nova palavra
       }
-       // Atualiza a pontuação
-        pontos += calcular_pontos(tela_relogio(), inicio);
     }
-    else
-    { 
-      // Desconta pontos por letra errada
-      *pontos -= descont_l_errada;
-      if (*pontos < 0)
-      {
-        *pontos = 0;
-      }
-    }
+    
 
     if (quantidade_de_palavras_acertadas == TOTAL_DE_PALAVRAS || testa_tempoDigitacao(vetPalavras, t0))
     {
@@ -350,6 +365,8 @@ void jogo()
     }
   }
   tela_atualiza();
+  atualizar_recorde(pontos, "Jogador", recordes);
+  salvar_recorde();
 }
 
 void espera_enter()
