@@ -509,6 +509,135 @@ bool move_tantas_cartas_de_uma_pilha_do_jogo_para_outra(jogo_t *jogo, int origem
     return true;
 }
 
+bool move_cartas_de_uma_pilha_do_jogo_para_outra(jogo_t *jogo, int origem_indice, int destino_indice)
+{
+    if(origem_indice < 0 || origem_indice >= 7 || destino_indice < 0 || destino_indice >= 7)
+    {
+        return false;
+    }
+    pilha_t *pilha_origem = &jogo->principais[origem_indice];
+    pilha_t *pilha_destino = &jogo->principais[destino_indice];
+    if(pilha_vazia(pilha_origem))
+    {
+        return false;
+    }
+    int quantidade = 1; // Initialize the quantity of cards to be moved as 1
+    carta_t carta = pilha_topo(*pilha_origem);
+    while (pode_empilhar(carta, *pilha_destino) && carta.aberta)
+    {
+        quantidade++; // Increment the quantity of cards to be moved
+        carta = pilha_origem->cartas[pilha_origem->n_cartas - quantidade];
+    }
+    if (quantidade > pilha_origem->n_cartas)
+    {
+        return false;
+    }
+    for (int i = pilha_origem->n_cartas - quantidade; i < pilha_origem->n_cartas; i++)
+    {
+        carta_t carta = pilha_origem->cartas[i];
+        if (!pode_empilhar(carta, *pilha_destino) || !carta.aberta)
+        {
+            return false;
+        }
+    }
+    for (int i = pilha_origem->n_cartas - quantidade; i < pilha_origem->n_cartas; i++)
+    {
+        carta_t carta = pilha_remove_topo(pilha_origem);
+        empilhar(carta, pilha_destino);
+    }
+    return true;
+}
+
+
+bool faz_uma_jogada(jogo_t *jogo, int origem_indice, int destino_indice, int quantidade)
+{
+    if(origem_indice < 0 || origem_indice >= 7 || destino_indice < 0 || destino_indice >= 7)
+    {
+        return false;
+    }
+    pilha_t *pilha_origem = &jogo->principais[origem_indice];
+    pilha_t *pilha_destino = &jogo->principais[destino_indice];
+    if(quantidade > pilha_origem->n_cartas)
+    {
+        return false;
+    }
+    for(int i = pilha_origem->n_cartas - quantidade; i < pilha_origem->n_cartas; i++)
+    {
+        carta_t carta = pilha_origem->cartas[i];
+        if(!pode_empilhar(carta, *pilha_destino) || !carta.aberta)
+        {
+            return false;
+        }
+    }
+    for(int i = pilha_origem->n_cartas - quantidade; i < pilha_origem->n_cartas; i++)
+    {
+        carta_t carta = pilha_remove_topo(pilha_origem);
+        empilhar(carta, pilha_destino);
+    }
+    return true;
+}
+bool faz_uma_jogada(jogo_t *jogo, int origem_indice, int destino_indice, int quantidade);
+
+bool realizar_jogada(jogo_t *jogo, const char *jogada)
+{
+    if (strlen(jogada) < 1 || strlen(jogada) > 2)
+    {
+        return false;
+    }
+
+    char origem = tolower(jogada[0]);
+    char destino = tolower(jogada[1]);
+
+    int origem_indice = -1;
+    int destino_indice = -1;
+
+    if (origem == 'm' || origem == 'p')
+    {
+        origem_indice = 0;
+    }
+    else if (origem >= 'a' && origem <= 'd')
+    {
+        origem_indice = origem - 'a' + 1;
+    }
+    else if (origem >= '1' && origem <= '7')
+    {
+        origem_indice = origem - '1' + 5;
+    }
+    else
+    {
+        return false;
+    }
+
+    if (destino == 'm' || destino == 'p')
+    {
+        destino_indice = 0;
+    }
+    else if (destino >= 'a' && destino <= 'd')
+    {
+        destino_indice = destino - 'a' + 1;
+    }
+    else if (destino >= '1' && destino <= '7')
+    {
+        destino_indice = destino - '1' + 5;
+    }
+    else
+    {
+        return false;
+    }
+
+    if (jogada[1] == '\0')
+    {
+        destino_indice = 2;
+    }
+
+    if (jogada[0] == 'f')
+    {
+        jogo->finalizado = true;
+        return true;
+    }
+
+    return faz_uma_jogada(jogo, origem_indice, destino_indice, 1);
+}
 
 
 
