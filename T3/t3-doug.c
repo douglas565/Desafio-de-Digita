@@ -549,35 +549,6 @@ bool move_cartas_de_uma_pilha_do_jogo_para_outra(jogo_t *jogo, int origem_indice
 }
 
 
-bool faz_uma_jogada(jogo_t *jogo, int origem_indice, int destino_indice, int quantidade)
-{
-    if(origem_indice < 0 || origem_indice >= 7 || destino_indice < 0 || destino_indice >= 7)
-    {
-        return false;
-    }
-    pilha_t *pilha_origem = &jogo->principais[origem_indice];
-    pilha_t *pilha_destino = &jogo->principais[destino_indice];
-    if(quantidade > pilha_origem->n_cartas)
-    {
-        return false;
-    }
-    for(int i = pilha_origem->n_cartas - quantidade; i < pilha_origem->n_cartas; i++)
-    {
-        carta_t carta = pilha_origem->cartas[i];
-        if(!pode_empilhar(carta, *pilha_destino) || !carta.aberta)
-        {
-            return false;
-        }
-    }
-    for(int i = pilha_origem->n_cartas - quantidade; i < pilha_origem->n_cartas; i++)
-    {
-        carta_t carta = pilha_remove_topo(pilha_origem);
-        empilhar(carta, pilha_destino);
-    }
-    return true;
-}
-bool faz_uma_jogada(jogo_t *jogo, int origem_indice, int destino_indice, int quantidade);
-
 bool realizar_jogada(jogo_t *jogo, const char *jogada)
 {
     if (strlen(jogada) < 1 || strlen(jogada) > 2)
@@ -632,12 +603,134 @@ bool realizar_jogada(jogo_t *jogo, const char *jogada)
 
     if (jogada[0] == 'f')
     {
-        jogo->finalizado = true;
+        jogo->finalizar_jogo = true;
         return true;
     }
-
-    return faz_uma_jogada(jogo, origem_indice, destino_indice, 1);
+    else if (jogada[0] == 'm' || jogada[0] == 'p')
+    {
+        return move_carta_do_monte_para_pilha(jogo, destino_indice);
+    }
+    else
+    {
+        return faz_uma_jogada(jogo, origem_indice, destino_indice, 1);
+    }
 }
+
+void desenha_de_local(int linha, int coluna){
+    printf("Linha: %d, Coluna: %d\n", linha, coluna);
+    printf(" _______\n");
+    printf("|       |\n");
+    printf("|       |\n");
+    printf("|_______|\n");
+}
+
+void desenho_de_carta_fechada(int linha, int coluna){
+    tela_lincol(linha, coluna);
+    tela_cor_fundo(200, 200, 200);
+    printf(" _______\n");
+    printf("|       |\n");
+    printf("|       |\n");
+    printf("|_______|\n");
+    tela_cor_normal();
+
+}
+
+void desenho_de_carta_aberta(int linha, int coluna, carta_t carta){
+    tela_lincol(linha, coluna);
+    tela_cor_fundo(200, 200, 200);
+    if (cor(carta) == vermelho) tela_cor_letra(200, 0, 0);
+    else tela_cor_letra(0, 0, 0);
+    
+    char descricao[20];
+    obter_descricao_carta(carta, descricao); // Assuming obter_descricao_carta is the function from Part I
+    
+    printf("%s", descricao);
+    
+    tela_cor_normal();
+}
+
+void desenho_de_pilha_fechada(int linha, int coluna){
+    tela_lincol(linha, coluna);
+    tela_cor_fundo(200, 200, 200);
+    printf(" _______\n");
+    printf("|       |\n");
+    printf("|       |\n");
+    printf("|_______|\n");
+    tela_cor_normal();
+}
+
+void desenho_de_pilha_topo(int linha, int coluna, pilha_t pilha){
+    if (pilha.vazia) {
+        desenho_de_pilha_fechada(linha, coluna);
+    } else {
+        carta_t topo = pilha_topo(pilha);
+        if (carta_aberta(topo)) {
+            desenho_de_carta_aberta(linha, coluna, topo);
+        } else {
+            desenho_de_carta_fechada(linha, coluna);
+        }
+    }
+}
+
+void desenho_de_pilha_aberta(int linha, int coluna, pilha_t pilha){
+    if (pilha.vazia) {
+        desenho_de_pilha_fechada(linha, coluna);
+    } else {
+        for (int i = 0; i < pilha.n_cartas; i++) {
+            carta_t carta = pilha.cartas[i];
+            desenho_de_carta_aberta(linha + i, coluna, carta);
+        }
+    }
+}
+
+void desenho_compacto_de_pilha_aberta(int linha, int coluna, pilha_t pilha){
+    if (pilha.vazia) {
+        desenho_de_pilha_fechada(linha, coluna);
+    } else {
+        int n_cartas_abertas = pilha.n_cartas - 2;
+        carta_t primeira_carta = pilha.cartas[0];
+        carta_t ultima_carta = pilha.cartas[pilha.n_cartas - 1];
+
+        desenho_de_carta_fechada(linha, coluna);
+        tela_lincol(linha + 1, coluna);
+        printf("  (%d)", n_cartas_abertas);
+        desenho_de_carta_aberta(linha + 2, coluna, primeira_carta);
+        desenho_de_carta_aberta(linha + 3, coluna, ultima_carta);
+    }
+}
+
+void jogo(){
+    jogo_t jogo;
+    inicializar_jogo(&jogo);
+    while (!verifica_vitoria(&jogo)) {
+        desenhar_jogo(&jogo);
+        char jogada[10];
+        printf("Jogada: ");
+        scanf("%s", jogada);
+        realizar_jogada(&jogo, jogada);
+    }
+    desenhar_jogo(&jogo);
+    printf("Parabéns, você ganhou!\n");
+}
+
+void desenhar_jogo(jogo_t *jogo){
+    tela_limpar();
+    tela_cor_normal();
+    tela_texto(0, 0, 20, preto, "Monte");
+    desenho_de_pilha_topo(0, 0, jogo->monte);
+    tela_texto(0, 0, 20, preto, "Descarte");
+    desenho_de_pilha_topo(0, 0, jogo->descarte);
+    tela_texto(0, 0, 20, preto, "Saída");
+    for (int i = 0; i < 4; i++) {
+        desenho_de_pilha_topo(0, 0, jogo->saida[i]);
+    }
+    tela_texto(0, 0, 20, preto, "Principais");
+    for (int i = 0; i < 7; i++) {
+        desenho_de_pilha_topo(0, 0, jogo->principais[i]);
+    }
+}
+
+
 
 
 
@@ -655,6 +748,8 @@ int main()
 
     empilhar(nova_carta, &pilha);
 
-    pilha_topo(pilha);
+    desenho_de_pilha_topo(0, 0, pilha);
 
+    return 0;
 }
+
