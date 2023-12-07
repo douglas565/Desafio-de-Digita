@@ -129,46 +129,12 @@ void Sorteia_palavra(char v[], int min_len, int max_len)
   v[len] = '\0'; // Termina a string com o caractere nulo
 }
 
-void salvar_recorde()
+void salvar_recorde(recorde recordes[3])
 {
   FILE *arquivo = fopen("ranking.txt", "w");
   if (arquivo == NULL)
   {
     perror("Erro ao criar o arquivo de recordes");
-    return;
-  }
-  fclose(arquivo);
-
-  arquivo = fopen("ranking.txt", "r");
-  if (arquivo == NULL)
-  {
-    perror("Erro ao abrir o arquivo de recordes para leitura");
-    return;
-  }
-
-  for (int i = 0; i < 3; i++)
-  {
-    fscanf(arquivo, "%s %d\n", recordes[i].identificador, &recordes[i].pontos);
-  }
-  fclose(arquivo);
-
-  // Comparar os pontos e montar o ranking
-  for (int i = 0; i < 3; i++)
-  {
-    for (int j = 0; j < 3; j++)
-    {
-      if (recordes[i].pontos > recordes[j].pontos)
-      {
-        recordes[j] = recordes[i];
-        break;
-      }
-    }
-  }
-
-  arquivo = fopen("ranking.txt", "w");
-  if (arquivo == NULL)
-  {
-    perror("Erro ao abrir o arquivo de recordes para escrita");
     return;
   }
 
@@ -194,9 +160,6 @@ void popular_matriz()
 
 void atualizar_recorde(int pontos, const char *identificador, recorde recordes[3])
 {
-  //imprime o recorde
-  
-
   // Atualiza os recordes se necessário
   for (int i = 0; i < 3; i++)
   {
@@ -213,11 +176,11 @@ void atualizar_recorde(int pontos, const char *identificador, recorde recordes[3
   }
 
   // Salva os recordes no arquivo
-  salvar_recorde();
+  salvar_recorde(recordes);
 }
 
 // Função para carregar os recordes do arquivo
-void carregar_recorde()
+void carregar_recorde(recorde recordes[3])
 {
   FILE *arquivo = fopen("ranking.txt", "r");
   if (arquivo == NULL)
@@ -226,29 +189,24 @@ void carregar_recorde()
     for (int i = 0; i < 3; i++)
     {
       // Define valores padrão
-
       strcpy(recordes[i].identificador, "Jogador");
       recordes[i].pontos = 0;
     }
 
     // Salva os recordes no arquivo
-    salvar_recorde();
+    salvar_recorde(recordes);
 
     return;
   }
-
   // Lê os recordes do arquivo
   for (int i = 0; i < 3; i++)
   {
-    char linha[16];
-    fgets(linha, sizeof(linha), arquivo);
+    char identificador[16];
+    int pontos;
+    fscanf(arquivo, "%s %d\n", identificador, &pontos);
 
-    // Lê apenas os caracteres até o primeiro caractere válido
-    int len = strcspn(linha, " ");
-    linha[len] = '\0';
-
-    strcpy(recordes[i].identificador, linha);
-    recordes[i].pontos = atoi(linha + len + 1);
+    strcpy(recordes[i].identificador, identificador);
+    recordes[i].pontos = pontos;
   }
 
   fclose(arquivo);
@@ -257,7 +215,7 @@ void carregar_recorde()
 void mostrar_tela(double tempo_restante, int indice, double inicio, int pontos)
 {
   tela_limpa();
-  carregar_recorde();
+  carregar_recorde(recordes);
   int i;
   int lin;
   int col;
@@ -348,6 +306,42 @@ void errou(int *pontos)
   }
 }
 
+void mostrar_recordes_final_de_jogo(int pontos)
+{
+  tela_limpa();
+  tela_lincol(tela_nlin() / 2, tela_ncol() / 2);
+  printf("Recordes:\n");
+  for (int indice = 0; indice < 3; indice++)
+  {
+    tela_lincol(tela_nlin() / 2 + indice + 1, tela_ncol() / 2);
+    printf("%s: %d\n", recordes[indice].identificador, recordes[indice].pontos);
+  }
+
+  // se o usuario tiver entre os 3 primeiros, pede o nome dele
+
+  if (pontos > recordes[2].pontos)
+  {
+    printf("Digite seu nome: ");
+    scanf("%s", recordes[2].identificador);
+    recordes[2].pontos = pontos;
+  }
+
+  // ordena o vetor de recordes
+  for (int indice = 0; indice < 3; indice++)
+  {
+    for (int j = indice + 1; j < 3; j++)
+    {
+      if (recordes[indice].pontos < recordes[j].pontos)
+      {
+        recorde aux = recordes[indice];
+        recordes[indice] = recordes[j];
+        recordes[j] = aux;
+      }
+    }
+    tela_atualiza();
+  }
+}
+
 void jogo()
 {
   int quantidade_de_palavras_acertadas = 0;
@@ -357,7 +351,7 @@ void jogo()
   long t0 = tela_relogio();
   processa_Palavra(vetPalavras, t0);
 
-  carregar_recorde();
+  carregar_recorde(recordes);
 
   double resta;
   double tempo = tela_relogio();
@@ -418,9 +412,6 @@ void jogo()
       if (quantidade_de_palavras_acertadas == TOTAL_DE_PALAVRAS)
       {
         printf("Parabéns, você acertou todas as palavras!");
-        // printf("Informe seu nome: ");
-        // scanf("%s", recordes[2].identificador);
-        recordes[2].pontos = pontos;
       }
       else
       {
@@ -430,7 +421,8 @@ void jogo()
     }
   }
   atualizar_recorde(pontos, "jogador", recordes);
-  salvar_recorde();
+  mostrar_recordes_final_de_jogo(pontos);
+  salvar_recorde(recordes);
   tela_atualiza();
 }
 
@@ -477,41 +469,6 @@ bool quer_jogar_de_novo()
       espera_enter();
       return true;
     }
-  }
-}
-
-void mostrar_recordes_final_de_jogo(int pontos)
-{
-  tela_limpa();
-  tela_lincol(tela_nlin() / 2, tela_ncol() / 2);
-  printf("Recordes:\n");
-  for (int indice = 0; indice < 3; indice++)
-  {
-    printf("%s: %d\n", recordes[indice].identificador, recordes[indice].pontos);
-  }
-
-  // se o usuario tiver entre os 3 primeiros, pede o nome dele
-
-  if (pontos > recordes[2].pontos)
-  {
-    printf("Digite seu nome: ");
-    scanf("%s", recordes[2].identificador);
-    recordes[2].pontos = pontos;
-  }
-
-  // ordena o vetor de recordes
-  for (int indice = 0; indice < 3; indice++)
-  {
-    for (int j = indice + 1; j < 3; j++)
-    {
-      if (recordes[indice].pontos < recordes[j].pontos)
-      {
-        recorde aux = recordes[indice];
-        recordes[indice] = recordes[j];
-        recordes[j] = aux;
-      }
-    }
-    tela_atualiza();
   }
 }
 
