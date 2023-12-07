@@ -9,7 +9,6 @@
 #include <time.h>
 #include <string.h>
 
-#include "ranking.txt"
 #include "tecla.h"
 #include "tela.h"
 
@@ -130,6 +129,57 @@ void Sorteia_palavra(char v[], int min_len, int max_len)
   v[len] = '\0'; // Termina a string com o caractere nulo
 }
 
+void salvar_recorde()
+{
+  FILE *arquivo = fopen("ranking.txt", "w");
+  if (arquivo == NULL)
+  {
+    perror("Erro ao criar o arquivo de recordes");
+    return;
+  }
+  fclose(arquivo);
+
+  arquivo = fopen("ranking.txt", "r");
+  if (arquivo == NULL)
+  {
+    perror("Erro ao abrir o arquivo de recordes para leitura");
+    return;
+  }
+
+  for (int i = 0; i < 3; i++)
+  {
+    fscanf(arquivo, "%s %d\n", recordes[i].identificador, &recordes[i].pontos);
+  }
+  fclose(arquivo);
+
+  // Comparar os pontos e montar o ranking
+  for (int i = 0; i < 3; i++)
+  {
+    for (int j = 0; j < 3; j++)
+    {
+      if (recordes[i].pontos > recordes[j].pontos)
+      {
+        recordes[j] = recordes[i];
+        break;
+      }
+    }
+  }
+
+  arquivo = fopen("ranking.txt", "w");
+  if (arquivo == NULL)
+  {
+    perror("Erro ao abrir o arquivo de recordes para escrita");
+    return;
+  }
+
+  for (int i = 0; i < 3; i++)
+  {
+    fprintf(arquivo, "%s %d\n", recordes[i].identificador, recordes[i].pontos);
+  }
+
+  fclose(arquivo);
+}
+
 void popular_matriz()
 {
   char banco_de_palavras[920][16];
@@ -144,6 +194,9 @@ void popular_matriz()
 
 void atualizar_recorde(int pontos, const char *identificador, recorde recordes[3])
 {
+  //imprime o recorde
+  
+
   // Atualiza os recordes se necessário
   for (int i = 0; i < 3; i++)
   {
@@ -160,7 +213,7 @@ void atualizar_recorde(int pontos, const char *identificador, recorde recordes[3
   }
 
   // Salva os recordes no arquivo
-  void salvar_recorde();
+  salvar_recorde();
 }
 
 // Função para carregar os recordes do arquivo
@@ -172,17 +225,14 @@ void carregar_recorde()
     // Caso o arquivo não exista, inicializa os recordes
     for (int i = 0; i < 3; i++)
     {
-      // Lê os dados diretamente do usuário ou define valores padrão
-      // Aqui você pode ajustar conforme necessário
-      printf("Informe o identificador do recorde %d: ", i + 1);
-      scanf("%s", recordes[i].identificador);
+      // Define valores padrão
 
-      printf("Informe os pontos do recorde %d: ", i + 1);
-      scanf("%d", &recordes[i].pontos);
+      strcpy(recordes[i].identificador, "Jogador");
+      recordes[i].pontos = 0;
     }
 
     // Salva os recordes no arquivo
-    fclose(arquivo);
+    salvar_recorde();
 
     return;
   }
@@ -194,27 +244,11 @@ void carregar_recorde()
     fgets(linha, sizeof(linha), arquivo);
 
     // Lê apenas os caracteres até o primeiro caractere válido
-    int len = strcspn(linha, "\0");
+    int len = strcspn(linha, " ");
     linha[len] = '\0';
 
     strcpy(recordes[i].identificador, linha);
     recordes[i].pontos = atoi(linha + len + 1);
-  }
-
-  fclose(arquivo);
-}
-
-void salvar_recorde()
-{
-  FILE *arquivo = fopen("ranking.txt", "w");
-  if (arquivo == NULL)
-  {
-    perror("Erro ao abrir o arquivo de recordes para escrita");
-    return;
-  }
-
-  for (int i = 0; i < 3; i++) {
-    fprintf(arquivo, "%s %d\n", recordes[i].identificador, recordes[i].pontos);
   }
 
   fclose(arquivo);
@@ -384,10 +418,9 @@ void jogo()
       if (quantidade_de_palavras_acertadas == TOTAL_DE_PALAVRAS)
       {
         printf("Parabéns, você acertou todas as palavras!");
-        printf("Informe seu nome: ");
-        scanf("%s", recordes[2].identificador);
+        // printf("Informe seu nome: ");
+        // scanf("%s", recordes[2].identificador);
         recordes[2].pontos = pontos;
-        
       }
       else
       {
@@ -396,9 +429,9 @@ void jogo()
       break;
     }
   }
-  tela_atualiza();
-  atualizar_recorde(pontos, "Jogador", recordes);
+  atualizar_recorde(pontos, "jogador", recordes);
   salvar_recorde();
+  tela_atualiza();
 }
 
 void espera_enter()

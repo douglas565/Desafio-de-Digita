@@ -660,6 +660,10 @@ void desenho_de_pilha_fechada(int linha, int coluna){
 }
 
 void desenho_de_pilha_topo(int linha, int coluna, pilha_t pilha){
+
+int n_cartas = pilha.n_cartas;
+for (int i = 0; i < n_cartas; i++) {
+
     if (pilha.vazia) {
         desenho_de_pilha_fechada(linha, coluna);
     } else {
@@ -673,6 +677,7 @@ void desenho_de_pilha_topo(int linha, int coluna, pilha_t pilha){
 }
 
 void desenho_de_pilha_aberta(int linha, int coluna, pilha_t pilha){
+    
     if (pilha.vazia) {
         desenho_de_pilha_fechada(linha, coluna);
     } else {
