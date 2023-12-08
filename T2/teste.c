@@ -409,13 +409,13 @@ void jogo(char *nome)
       tela_limpa();
       if (quantidade_de_palavras_acertadas == TOTAL_DE_PALAVRAS)
       {
-        tela_lincol(tela_nlin() / 2 * -4, tela_ncol() / 2 );
-        printf("Parabéns, você acertou todas as palavras!\n");
+        tela_lincol(tela_nlin() / 2 * -4, tela_ncol() / 2);
+        printf("Parabéns %s, você acertou todas as palavras!\n", nome);
         tela_atualiza();
       }
       else
       {
-        tela_lincol(tela_nlin() / 2 * 4, tela_ncol() / 2 );
+        tela_lincol(tela_nlin() / 2 * 4, tela_ncol() / 2);
         printf("Tempo Esgotado!\n");
         tela_atualiza();
       }
@@ -423,11 +423,9 @@ void jogo(char *nome)
     }
   }
 
-  printf("Parabens, %s\n", nome);
   atualizar_recorde(pontos, nome, recordes);
   mostrar_recordes_final_de_jogo(pontos);
-    // salvar_recorde(recordes);
-tela_atualiza();
+  tela_atualiza();
 }
 
 void espera_enter()
