@@ -313,6 +313,20 @@ void mostrar_recordes_final_de_jogo(recorde recordes[3])
     tela_lincol(tela_nlin() / 2 + indice + 1, tela_ncol() / 2);
     printf("%s: %d\n", recordes[indice].identificador, recordes[indice].pontos);
   }
+
+  // for (int indice = 0; indice < 3; indice++)
+  // {
+  //   for (int j = indice + 1; j < 3; j++)
+  //   {
+  //     if (recordes[indice].pontos < recordes[j].pontos)
+  //     {
+  //       recorde aux = recordes[indice];
+  //       recordes[indice] = recordes[j];
+  //       recordes[j] = aux;
+  //     }
+  //   }
+    // tela_atualiza();
+  // }
 }
 
 void jogo()
@@ -392,12 +406,12 @@ void jogo()
       }
       else
       {
-        tela_lincol(tela_nlin() / 2 - 1, tela_ncol() / 2 - 1);
         printf("Tempo Esgotado!");
       }
 
       if (pontos > recordes[2].pontos)
       {
+        printf("Digite seu nome: ");
         fgets(nome, 16, stdin);
       }
       break;

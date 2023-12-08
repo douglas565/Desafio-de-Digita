@@ -42,24 +42,26 @@ void processa_Palavra(palavras palavrasJogo[], double inicio);
 bool testa_tempoDigitacao(palavras palavrasJogo[], double inicio);
 void jogo();
 
+void NewFunction(int pontos, char nome[16]);
+
 int main()
 {
 
-  srand(time(0));
+    srand(time(0));
 
-  apresentacao();
-  // gera um tamanho aleatorio
-  //  for que vai gera uma letra aleatoria
-  do
-  {
-    tela_ini();
-    tecla_ini();
-    jogo();
-    tecla_fim();
-    tela_fim();
+    apresentacao();
+    // gera um tamanho aleatorio
+    //  for que vai gera uma letra aleatoria
+    do
+    {
+        tela_ini();
+        tecla_ini();
+        jogo();
+        tecla_fim();
+        tela_fim();
 
-  } while (quer_jogar_de_novo());
-  encerramento();
+    } while (quer_jogar_de_novo());
+    encerramento();
 }
 
 int ler_banco_de_palavras(char palavras[920][16], const char *nome_do_arquivo)

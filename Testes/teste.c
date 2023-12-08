@@ -132,12 +132,15 @@ void Sorteia_palavra(char v[], int min_len, int max_len)
 void salvar_recorde(recorde recordes[3])
 {
   FILE *arquivo = fopen("ranking.txt", "w");
-  if (arquivo != NULL)
+  if (arquivo == NULL)
   {
-    for (int i = 0; i < 3; i++)
-    {
-      fprintf(arquivo, "%s:%d\n", recordes[i].identificador, recordes[i].pontos);
-    }
+    perror("Erro ao criar o arquivo de recordes");
+    return;
+  }
+
+  for (int i = 0; i < 3; i++)
+  {
+    fprintf(arquivo, "%s %d\n", recordes[i].identificador, recordes[i].pontos);
   }
 
   fclose(arquivo);
@@ -155,14 +158,14 @@ void popular_matriz()
   }
 }
 
-void atualizar_recorde(int pontos, char identificador[16], recorde recordes[3])
+void atualizar_recorde(int pontos, const char *identificador, recorde recordes[3])
 {
   // Atualiza os recordes se necessário
   for (int i = 0; i < 3; i++)
   {
     if (pontos > recordes[i].pontos)
     {
-      for (int j = 2; j >= i; j--)
+      for (int j = 2; j > i; j--)
       {
         recordes[j] = recordes[j - 1];
       }
@@ -171,6 +174,7 @@ void atualizar_recorde(int pontos, char identificador[16], recorde recordes[3])
       break;
     }
   }
+
   // Salva os recordes no arquivo
   salvar_recorde(recordes);
 }
@@ -178,41 +182,40 @@ void atualizar_recorde(int pontos, char identificador[16], recorde recordes[3])
 // Função para carregar os recordes do arquivo
 void carregar_recorde(recorde recordes[3])
 {
+  FILE *arquivo = fopen("ranking.txt", "r");
+  if (arquivo == NULL)
+  {
+    // Caso o arquivo não exista, inicializa os recordes
+    for (int i = 0; i < 3; i++)
+    {
+      // Define valores padrão
+      strcpy(recordes[i].identificador, "Jogador");
+      recordes[i].pontos = 0;
+    }
 
-  FILE *file;
-  file = fopen("ranking.txt", "r");
+    // Salva os recordes no arquivo
+    salvar_recorde(recordes);
 
-  char tLinha[100], ponto[10], *palavra;
-  int i, tam = 0, count = 0, result = 0;
-  int linha = 0;
-  if(file == NULL){
-      while (fgets(tLinha, 100, file))
-      {
-        tam = 0;
-        count = 0;
-        palavra = strchr(tLinha, ':');
-        if (palavra != NULL)
-        {
-          for (i = 0; tLinha[i] != ':'; i++)
-          {
-            recordes[linha].identificador[i] = tLinha[i];
-          }
-          for(i; tLinha[i] != '\0'; i++){
-            ponto[tam] = tLinha[i];
-          }
-          recordes[linha].pontos = *(ponto -1 ) - '0';
-        }
-        linha++;
-        // printf("%s\n", tLinha);
-      }
+    return;
+  }
+  // Lê os recordes do arquivo
+  for (int i = 0; i < 3; i++)
+  {
+    char identificador[16];
+    int pontos;
+    fscanf(arquivo, "%s %d\n", identificador, &pontos);
+
+    strcpy(recordes[i].identificador, identificador);
+    recordes[i].pontos = pontos;
   }
 
-  fclose(file);
+  fclose(arquivo);
 }
 
 void mostrar_tela(double tempo_restante, int indice, double inicio, int pontos)
 {
-  // tela_limpa();
+  tela_limpa();
+  carregar_recorde(recordes);
   int i;
   int lin;
   int col;
@@ -303,15 +306,39 @@ void errou(int *pontos)
   }
 }
 
-void mostrar_recordes_final_de_jogo(recorde recordes[3])
+void mostrar_recordes_final_de_jogo(int pontos)
 {
-  // tela_limpa();
+  tela_limpa();
   tela_lincol(tela_nlin() / 2, tela_ncol() / 2);
   printf("Recordes:\n");
   for (int indice = 0; indice < 3; indice++)
   {
     tela_lincol(tela_nlin() / 2 + indice + 1, tela_ncol() / 2);
     printf("%s: %d\n", recordes[indice].identificador, recordes[indice].pontos);
+  }
+
+  // se o usuario tiver entre os 3 primeiros, pede o nome dele
+
+  if (pontos > recordes[2].pontos)
+  {
+    printf("Digite seu nome: ");
+    scanf("%s", recordes[2].identificador);
+    recordes[2].pontos = pontos;
+  }
+
+  // ordena o vetor de recordes
+  for (int indice = 0; indice < 3; indice++)
+  {
+    for (int j = indice + 1; j < 3; j++)
+    {
+      if (recordes[indice].pontos < recordes[j].pontos)
+      {
+        recorde aux = recordes[indice];
+        recordes[indice] = recordes[j];
+        recordes[j] = aux;
+      }
+    }
+    tela_atualiza();
   }
 }
 
@@ -332,13 +359,9 @@ void jogo()
 
   int pontos = 0;
   int palavra_selecionada = -1; // Nenhuma palavra selecionada inicialmente
-  char nome[16];
   while (quantidade_de_palavras_acertadas <= TOTAL_DE_PALAVRAS)
   {
-    // printf("%d  %d\n", quantidade_de_palavras_acertadas, TOTAL_DE_PALAVRAS);
-    for(int i=0; i < 3; i++){
-      printf("%s  %d\n", recordes[i].identificador, recordes[i].pontos);
-    }
+    printf("%d  %d\n", quantidade_de_palavras_acertadas, TOTAL_DE_PALAVRAS);
 
     resta = TEMPO - (tela_relogio() - t0);
     mostrar_tela(resta, palavra_selecionada, t0, pontos); // Mostra todas as palavras na tela
@@ -384,7 +407,7 @@ void jogo()
 
     if (quantidade_de_palavras_acertadas == TOTAL_DE_PALAVRAS || testa_tempoDigitacao(vetPalavras, t0))
     {
-      // tela_limpa();
+      tela_limpa();
       tela_lincol(tela_nlin() / 2, tela_ncol() / 2);
       if (quantidade_de_palavras_acertadas == TOTAL_DE_PALAVRAS)
       {
@@ -392,20 +415,14 @@ void jogo()
       }
       else
       {
-        tela_lincol(tela_nlin() / 2 - 1, tela_ncol() / 2 - 1);
         printf("Tempo Esgotado!");
-      }
-
-      if (pontos > recordes[2].pontos)
-      {
-        fgets(nome, 16, stdin);
       }
       break;
     }
   }
-
-  atualizar_recorde(pontos, nome, recordes);
-  mostrar_recordes_final_de_jogo(recordes);
+  atualizar_recorde(pontos, "jogador", recordes);
+  mostrar_recordes_final_de_jogo(pontos);
+  salvar_recorde(recordes);
   tela_atualiza();
 }
 
@@ -419,6 +436,7 @@ void espera_enter()
 
 void apresentacao()
 {
+  tela_limpa();
   printf("Você deve digitar as palavras que aparecerão na tela.\n");
   printf("A ordem é importante, e reduzira pontos se errar a letra!!\n");
   printf("Tecle <enter> para iniciar. ");
@@ -436,7 +454,7 @@ void encerramento()
 bool quer_jogar_de_novo()
 {
   espera_enter();
-  tela_lincol(0 , 0);
+
   printf("Digite 's' para jogar de novo: ");
   tela_atualiza();
   while (true)
