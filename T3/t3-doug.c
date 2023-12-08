@@ -1,5 +1,6 @@
 #include <stdbool.h>
 #include <stdio.h>
+#include <time.h>
 #include "tela.h"
 #include <assert.h>
 
@@ -41,6 +42,8 @@ typedef struct
     pilha_t descarte;
     pilha_t saida[4];
     pilha_t principais[7];
+    int pontos;
+    time_t tempo_ultima_jogada;
 } jogo_t;
 
 cor_t cor(carta_t c)
@@ -771,21 +774,6 @@ void desenho_de_pilha_topo(int linha, int coluna, pilha_t pilha)
         }
     }
 }
-void jogo()
-{
-    jogo_t jogo;
-    inicializar_jogo(&jogo);
-    while (!verifica_vitoria(&jogo))
-    {
-        desenhar_jogo(&jogo);
-        char jogada[10];
-        printf("Jogada: ");
-        scanf("%s", jogada);
-        realizar_jogada(&jogo, jogada);
-    }
-    desenhar_jogo(&jogo);
-    printf("Parabéns, você ganhou!\n");
-}
 
 void desenhar_jogo(jogo_t *jogo)
 {
@@ -805,6 +793,42 @@ void desenhar_jogo(jogo_t *jogo)
     {
         desenho_de_pilha_topo(0, 0, jogo->principais[i]);
     }
+}
+
+void inicializa_jogo(jogo_t *jogo)
+{
+    jogo->pontos = 0;
+    jogo->tempo_ultima_jogada = time(NULL);
+    // inicialização de outros campos
+}
+
+void movimenta_descarte_para_pilha(jogo_t *jogo)
+{
+    time_t agora = time(NULL);
+    int bonus = 0;
+    if (difftime(agora, jogo->tempo_ultima_jogada) < 7)
+    {
+        bonus = (7 - difftime(agora, jogo->tempo_ultima_jogada)) / 7 * 3 * 10;
+    }
+    jogo->pontos += 10 + bonus;
+    jogo->tempo_ultima_jogada = agora;
+    // lógica de movimentação do descarte para a pilha
+}
+
+void jogo()
+{
+    jogo_t jogo;
+    inicializar_jogo(&jogo);
+    while (!verifica_vitoria(&jogo))
+    {
+        desenhar_jogo(&jogo);
+        char jogada[10];
+        printf("Jogada: ");
+        scanf("%s", jogada);
+        realizar_jogada(&jogo, jogada);
+    }
+    desenhar_jogo(&jogo);
+    printf("Parabéns, você ganhou!\n");
 }
 
 int main()
