@@ -59,7 +59,7 @@ int main()
   srand(time(0));
   char nome[16];
 
-  apresentacao(nome);
+  apresentacao(nome); // apresenta o jogo e pede o nome do usuario
   // gera um tamanho aleatorio
   //  for que vai gera uma letra aleatoria
   do
